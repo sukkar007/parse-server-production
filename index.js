@@ -1,28 +1,30 @@
 import express from 'express';
 import { ParseServer, FileSystemAdapter } from 'parse-server';
-import ParseDashboard from 'parse-dashboard';
+import ParseDashboardImport from 'parse-dashboard';
 import http from 'http';
 import { WebSocketServer } from 'ws';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
+// --- إعداد المسارات ---
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// --- إعداد التطبيق ---
 const app = express();
 const PORT = process.env.PORT || 1337;
 const PARSE_MOUNT = '/parse';
 const DASHBOARD_MOUNT = '/dashboard';
 
-// MongoDB URI
+// --- MongoDB URI ---
 const mongoUri = process.env.MONGODB_URI || 'mongodb://mongo:27017/parse';
 
-// File Adapter المدمج
+// --- File Adapter ---
 const filesAdapter = new FileSystemAdapter({
-  filesSubDirectory: './public/files', // المسار الذي سيتم تخزين الملفات فيه
+  filesSubDirectory: './public/files',
 });
 
-// Parse Server Configuration
+// --- Parse Server Configuration ---
 const parseServerConfig = {
   databaseURI: mongoUri,
   cloud: path.join(__dirname, 'cloud', 'main.cjs'),
@@ -30,13 +32,10 @@ const parseServerConfig = {
   masterKey: process.env.MASTER_KEY || 'parse-master-key-123456789',
   serverURL: process.env.SERVER_URL || `http://localhost:${PORT}${PARSE_MOUNT}`,
   publicServerURL: process.env.PUBLIC_SERVER_URL || `http://localhost:${PORT}${PARSE_MOUNT}`,
-
   liveQuery: {
     classNames: ['_Session', 'User', 'Post', 'Comment', 'Message'],
   },
-
-  filesAdapter: filesAdapter, // هنا نستخدم FileSystemAdapter المدمج
-
+  filesAdapter,
   classLevelPermissions: {
     '*': {
       find: { '*': true },
@@ -48,21 +47,20 @@ const parseServerConfig = {
       addField: { '*': true },
     },
   },
-
   allowClientClassCreation: true,
   allowCustomObjectId: true,
   enforcePrivateUsers: false,
   revokeSessionOnPasswordChange: false,
 };
 
-// Initialize Parse Server
+// --- تهيئة Parse Server ---
 const parseServer = new ParseServer(parseServerConfig);
 
-// Middleware
+// --- Middleware ---
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// CORS Headers
+// --- CORS Headers ---
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
@@ -71,11 +69,11 @@ app.use((req, res, next) => {
   else next();
 });
 
-// Mount Parse Server
-
+// --- Mount Parse Server ---
 app.use(PARSE_MOUNT, parseServer.app);
 
-// Parse Dashboard
+// --- Parse Dashboard ---
+const ParseDashboard = ParseDashboardImport.default || ParseDashboardImport; // دعم ESM
 const dashboardConfig = {
   apps: [
     {
@@ -94,10 +92,10 @@ const dashboardConfig = {
   ],
   trustProxy: 1,
 };
+const dashboard = new ParseDashboard(dashboardConfig, true);
+app.use(DASHBOARD_MOUNT, dashboard);
 
-app.use(DASHBOARD_MOUNT, ParseDashboard(dashboardConfig, true));
-
-// Health Check
+// --- Health Check ---
 app.get('/health', (req, res) => {
   res.json({
     status: 'ok',
@@ -107,16 +105,16 @@ app.get('/health', (req, res) => {
   });
 });
 
-// Root Endpoint
+// --- Root Endpoint ---
 app.get('/', (req, res) => {
   res.json({
-    message: 'Parse Server running without Redis',
-    parseAPI: `${parseServerConfig.serverURL}`,
+    message: '✅ Parse Server running without Redis',
+    parseAPI: parseServerConfig.serverURL,
     dashboard: DASHBOARD_MOUNT,
   });
 });
 
-// HTTP + WebSocket Server for Live Queries
+// --- HTTP + WebSocket Server for Live Queries ---
 const httpServer = http.createServer(app);
 const wss = new WebSocketServer({ server: httpServer });
 
@@ -126,6 +124,7 @@ wss.on('connection', (ws) => {
   ws.on('error', (err) => console.error('WebSocket error:', err));
 });
 
+// --- Start Server ---
 httpServer.listen(PORT, () => {
   console.log(`✅ Parse Server running on http://localhost:${PORT}`);
   console.log(`✅ Dashboard: http://localhost:${PORT}${DASHBOARD_MOUNT}`);
