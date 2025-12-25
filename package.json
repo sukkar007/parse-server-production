@@ -23,7 +23,6 @@
     "parse": "^4.2.0",
     "parse-server": "4.10.4",
     "parse-dashboard": "^5.0.0",
-    "parse-server-fs": "^1.0.1",
     "redis": "^4.6.0",
     "ws": "^8.13.0"
   },
