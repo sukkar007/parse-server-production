@@ -1,5 +1,5 @@
 import express from 'express';
-import { ParseServer } from 'parse-server';
+import { ParseServer, FileSystemAdapter } from 'parse-server';
 import ParseDashboard from 'parse-dashboard';
 import http from 'http';
 import { WebSocketServer } from 'ws';
@@ -17,6 +17,11 @@ const DASHBOARD_MOUNT = '/dashboard';
 // MongoDB URI
 const mongoUri = process.env.MONGODB_URI || 'mongodb://mongo:27017/parse';
 
+// File Adapter المدمج
+const filesAdapter = new FileSystemAdapter({
+  filesSubDirectory: './public/files', // المسار الذي سيتم تخزين الملفات فيه
+});
+
 // Parse Server Configuration
 const parseServerConfig = {
   databaseURI: mongoUri,
@@ -26,15 +31,12 @@ const parseServerConfig = {
   serverURL: process.env.SERVER_URL || `http://localhost:${PORT}${PARSE_MOUNT}`,
   publicServerURL: process.env.PUBLIC_SERVER_URL || `http://localhost:${PORT}${PARSE_MOUNT}`,
 
-  // Live Query Configuration
   liveQuery: {
     classNames: ['_Session', 'User', 'Post', 'Comment', 'Message'],
   },
 
-  // File Adapter
-  filesAdapter: 'parse-server-fs',
+  filesAdapter: filesAdapter, // هنا نستخدم FileSystemAdapter المدمج
 
-  // Class Level Permissions
   classLevelPermissions: {
     '*': {
       find: { '*': true },
