@@ -5,8 +5,8 @@ WORKDIR /usr/src/parse
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies
-RUN npm install --production
+# Install dependencies (skip peer dependency errors)
+RUN npm install --production --legacy-peer-deps
 
 # Copy application files
 COPY . .
