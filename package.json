@@ -25,9 +25,9 @@
     "parse-dashboard": "^5.0.0",
     "redis": "^4.6.0",
     "ws": "^8.13.0",
-    "apollo-upload-client": "^18.0.0",
+    "apollo-upload-client": "17.0.0",
     "extract-files": "^14.0.0",
-    "graphql": "^16.6.0"
+    "graphql": "^16.7.1"
   },
   "devDependencies": {
     "nodemon": "^3.0.1"
