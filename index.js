@@ -72,7 +72,7 @@ app.use((req, res, next) => {
 });
 
 // Mount Parse Server
-await parseServer.start();
+
 app.use(PARSE_MOUNT, parseServer.app);
 
 // Parse Dashboard
