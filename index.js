@@ -25,7 +25,7 @@ const filesAdapter = new FileSystemAdapter({
 // Parse Server Configuration
 const parseServerConfig = {
   databaseURI: mongoUri,
-  cloud: path.join(__dirname, 'cloud', 'main.js'),
+  cloud: path.join(__dirname, 'cloud', 'main.cjs'),
   appId: process.env.APP_ID || 'parse-app-id-123456789',
   masterKey: process.env.MASTER_KEY || 'parse-master-key-123456789',
   serverURL: process.env.SERVER_URL || `http://localhost:${PORT}${PARSE_MOUNT}`,
