@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  mongo:
+    image: mongo:6.0
+    container_name: parse-mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: root123
+    networks:
+      - parse-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: parse-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - parse-network
+
+  parse:
+    build: .
+    container_name: parse-server
+    ports:
+      - "1337:1337"
+    depends_on:
+      - mongo
+      - redis
+    environment:
+      MONGODB_URI: mongodb://root:root123@mongo:27017/parse?authSource=admin
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_URL: redis://redis:6379
+      APP_ID: parse-app-id-123456789
+      MASTER_KEY: parse-master-key-123456789
+      SERVER_URL: http://localhost:1337/parse
+      PUBLIC_SERVER_URL: http://localhost:1337/parse
+      DASHBOARD_USER: admin
+      DASHBOARD_PASSWORD: admin123
+      PORT: 1337
+    networks:
+      - parse-network
+    restart: unless-stopped
+
+volumes:
+  mongo_data:
+  redis_data:
+
+networks:
+  parse-network:
+    driver: bridge
